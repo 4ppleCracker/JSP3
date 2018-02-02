@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27130.2027
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}") = "JSP3", "NodejsConsoleApp1\JSP3.njsproj", "{3EDE5226-261E-43A8-A916-CB842824BB30}"
+Project("{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}") = "JSP3", "JSP3\JSP3.njsproj", "{3EDE5226-261E-43A8-A916-CB842824BB30}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
