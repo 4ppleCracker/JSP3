@@ -1,9 +1,9 @@
 {
-  "name": "nodejs-console-app1",
+  "name": "JSP3",
   "version": "0.0.0",
-  "description": "NodejsConsoleApp1",
+  "description": "JavaScript PreProcessing Program",
   "main": "app.js",
   "author": {
-    "name": "PCuser"
+    "name": "Nobbele"
   }
 }
