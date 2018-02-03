@@ -21,27 +21,26 @@ function debug() {
     return true;
 }
 global.defineds = [];
-function defmatch(code) {
-    var defregex = /@def[ ]*([A-z0-9]*)[ ]*([^\r\n ]*)/g
 
-    var matcharray = defregex.execAll(code);
-
+function match(regex, code, callback) {
+    var matcharray = regex.execAll(code);
     matcharray.sort(function (a, b) {
         return b[1].length - a[1].length;
     })
     matcharray.forEach(function (match) {
-        global.defineds.push(match[1]);
+        callback(match, matcharray, regex);
     });
 }
+function defmatch(code) {
+    var reg = new RegExp("@def[ ]*([A-z0-9]*)[ ]*([^\r\n ]*)", "g");
+    match(reg, code, function (match) {
+        global.defineds.push(match[1]);
+    });
+    return code;
+}
 function defreplace() {
-    var defregex = /@def[ ]*([A-z0-9]*)[ ]*([^\r\n ]*)/g
-
-    var matcharray = defregex.execAll(code);
-
-    matcharray.sort(function (a, b) {
-        return b[1].length - a[1].length;
-    })
-    matcharray.forEach(function (match) {
+    var defregex = new RegExp("@def[ ]*([A-z0-9]*)[ ]*([^\r\n ]*)", "g");
+    match(defregex, code, function (match) {
         if (debug()) console.log("replacing " + match[1] + " with " + match[2]);
 
         code = code.replace(defregex, "");
@@ -54,14 +53,8 @@ function defreplace() {
     return code;
 }
 function fdefmatch(code) {
-    var regex = /@fdef[ ]*([^\r\n ]*)\(([A-z, ]*)\)[ ]*([^\r\n]*)/g
-
-    var matcharray = regex.execAll(code);
-
-    matcharray.sort(function (a, b) {
-        return b[1].length - a[1].length;
-    })
-    matcharray.forEach(function (match) {
+    var regex = new RegExp("@fdef[ ]*([^\r\n ]*)\(([A-z, ]*)\)[ ]*([^\r\n]*)", "g");
+    match(regex, code, function (match) {
         if (debug()) console.log("replacing " + match[1] + " function");
 
         code = code.replace(regex, "");
@@ -82,14 +75,8 @@ function fdefmatch(code) {
     return code;
 }
 function ifdefmatch(code) {
-    var regex = /@ifdef[ ]*([^{ ]*)[ ]*{[\n\r]*([^}]*)}/g
-
-    var matcharray = regex.execAll(code);
-
-    matcharray.sort(function (a, b) {
-        return b[1].length - a[1].length;
-    })
-    matcharray.forEach(function (match) {
+    var regex = new RegExp("@ifdef[ ]*([^{ ]*)[ ]*{[\n\r]*([^}]*)}", "g");
+    match(regex, code, function (match) {
         if (debug()) console.log("");
         if (global.defineds.includes(match[1])) {
             if (debug()) console.log("defined! replacing " + match[0] + " with " + match[2]);
@@ -102,14 +89,8 @@ function ifdefmatch(code) {
     return code;
 }
 function ifelsedefmatch(code) {
-    var regex = /@ifdef[ ]*([^{ ]*)[ ]*{[\n\r]*([^}]*)}[ ]*@else[ ]*{[\n\r]*([^}]*)}/g
-
-    var matcharray = regex.execAll(code);
-
-    matcharray.sort(function (a, b) {
-        return b[1].length - a[1].length;
-    })
-    matcharray.forEach(function (match) {
+    var regex = new RegExp("@ifdef[ ]*([^{ ]*)[ ]*{[\n\r]*([^}]*)}[ ]*@else[ ]*{[\n\r]*([^}]*)}", "g");
+    match(regex, code, function (match) {
         if (debug()) console.log("");
         if (global.defineds.includes(match[1])) {
             if (debug()) console.log("defined! replacing " + match[0] + " with " + match[2]);
@@ -122,14 +103,8 @@ function ifelsedefmatch(code) {
     return code;
 }
 function includematch(code) {
-    var regex = /@include[ ]*(.*\.js)/g
-
-    var matcharray = regex.execAll(code);
-
-    matcharray.sort(function (a, b) {
-        return b[1].length - a[1].length;
-    })
-    matcharray.forEach(function (match) {
+    var regex = new RegExp("@include[ ]*(.*\.js)", "g");
+    match(regex, code, function (match) {
         if (debug()) console.log("Including file " + match[1]);
         var file = readfile(match[1]);
         code = code.replace(match[0], file);
@@ -138,13 +113,18 @@ function includematch(code) {
 }
 var code = "@def TEST 10\n\
 @ifdef TEST {\n\
-    console.log(\"TE-ST is defined\")\n\
+    console.log(\"TE-ST is defined\" + TEST)\n\
 }";
-code = includematch(code)
-defmatch(code);
-code = fdefmatch(code);
-code = ifelsedefmatch(code);
-code = ifdefmatch(code);
-code = defreplace(code);
+var matches = [
+    includematch,
+    defmatch,
+    fdefmatch,
+    ifelsedefmatch,
+    ifdefmatch,
+    defreplace
+]
+matches.forEach(function (func) {
+    code = func(code);
+});
 
 console.log("Output code:\n" + code.replace(/^\s*[\r\n]/gm, ""));
