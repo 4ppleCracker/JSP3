@@ -1,3 +1,8 @@
+var fs = require('fs');
+function readfile(file) {
+    return fs.readFileSync(file, 'utf8')
+}
+
 RegExp.prototype.execAll = function (string) {
     var match = null;
     var matches = new Array();
@@ -13,7 +18,7 @@ RegExp.prototype.execAll = function (string) {
     return matches;
 }
 function debug() {
-    return false
+    return true;
 }
 global.defineds = [];
 function defmatch(code) {
@@ -86,7 +91,6 @@ function ifdefmatch(code) {
     })
     matcharray.forEach(function (match) {
         if (debug()) console.log("");
-        console.log(match);
         if (global.defineds.includes(match[1])) {
             if (debug()) console.log("defined! replacing " + match[0] + " with " + match[2]);
             code = code.replace(match[0], match[2]);
@@ -117,16 +121,26 @@ function ifelsedefmatch(code) {
     });
     return code;
 }
-var code = "@fdef TIMESTWO(a) a * 2\n\
-@fdef ADD(a, b) a + b\n\
-@def NUM 10\n\
-@def SECNUM 20\n\
-@ifdef NOTNUM{\n\
-console.log(NUM + ADD(10,10))\n\
-} @else {\n\
-console.log(SECNUM + TIMESTWO(2))\n\
-}";
+function includematch(code) {
+    var regex = /@include[ ]*(.*\.js)/g
 
+    var matcharray = regex.execAll(code);
+
+    matcharray.sort(function (a, b) {
+        return b[1].length - a[1].length;
+    })
+    matcharray.forEach(function (match) {
+        if (debug()) console.log("Including file " + match[1]);
+        var file = readfile(match[1]);
+        code = code.replace(match[0], file);
+    });
+    return code;
+}
+var code = "@def TEST 10\n\
+@ifdef TEST {\n\
+    console.log(\"TE-ST is defined\")\n\
+}";
+code = includematch(code)
 defmatch(code);
 code = fdefmatch(code);
 code = ifelsedefmatch(code);
